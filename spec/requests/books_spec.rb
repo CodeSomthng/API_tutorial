@@ -6,13 +6,33 @@ describe 'Books API', type: :request do
   
 
   describe 'GET /api/v1/books' do
-    before do
-      author = FactoryBot.create(:author, first_name: "George", last_name: "Orwell", age: 99)
-      FactoryBot.create(:book, title: '1984', author_id: author.id)
-    end
+    # before do
+    #   author = FactoryBot.create(:author, first_name: "George", last_name: "Orwell", age: 99)
+    #   FactoryBot.create(:book, title: '1984', author_id: author.id)
+    # end
+    let!(:author) { FactoryBot.create(:author, first_name: "George", last_name: "Orwell", age: 99) }
+    let!(:book) { FactoryBot.create(:book, title: '1984', author_id: author.id) }
 
     it 'returns all books' do
-      get api_v1_books_path, as: :json
+      get api_v1_books_path
+      
+      expect(response).to have_http_status(:success)
+      expect(response_body.size).to eq(1)
+      expect(response_body).to eq(
+        [
+          {
+            "id": 1,
+            "title": '1984',
+            "author_name": 'George Orwell',
+            "author_age": 99
+          }
+        ]
+      )
+    end
+
+    it 'returns a subset of books based on pagination' do
+
+      get api_v1_books_path, params: { limit: 1 }
 
       expect(response).to have_http_status(:success)
       expect(response_body.size).to eq(1)
@@ -27,6 +47,24 @@ describe 'Books API', type: :request do
         ]
       )
     end
+
+    it 'returns a subset of books based on limit and offset' do
+      get api_v1_books_path, params: { limit: 1, offset: 0 }
+
+      expect(response).to have_http_status(:success)
+      expect(response_body.size).to eq(1)
+      expect(response_body).to eq(
+        [
+          {
+            "id": 1,
+            "title": '1984',
+            "author_name": 'George Orwell',
+            "author_age": 99
+          }
+        ]
+      )
+    end
+
   end
 
   describe 'POST /books' do
