@@ -15,7 +15,17 @@ describe 'Books API', type: :request do
       get api_v1_books_path, as: :json
 
       expect(response).to have_http_status(:success)
-      expect(JSON.parse(response.body).size).to eq(1)
+      expect(response_body.size).to eq(1)
+      expect(response_body).to eq(
+        [
+          {
+            "id": 1,
+            "title": '1984',
+            "author_name": 'George Orwell',
+            "author_age": 99
+          }
+        ]
+      )
     end
   end
 
@@ -28,11 +38,10 @@ describe 'Books API', type: :request do
         }
       }.to change { Book.count }.from(0).to(1)
 
-      byebug
 
       expect(response).to have_http_status(:created)  
       expect(Author.count).to eq(1)
-      expect(JSON.parse(response.body, symbolize_names: true)).to eq(
+      expect(response_body).to eq(
         {
           "id": 1,
           "title": 'The Martian',
