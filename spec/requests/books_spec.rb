@@ -7,7 +7,8 @@ describe 'Books API', type: :request do
 
   describe 'GET /api/v1/books' do
     before do
-      FactoryBot.create(:book, title: '1984', author: 'George Orwell')
+      author = FactoryBot.create(:author, first_name: "George", last_name: "Orwell", age: 99)
+      FactoryBot.create(:book, title: '1984', author_id: author.id)
     end
 
     it 'returns all books' do
@@ -21,16 +22,31 @@ describe 'Books API', type: :request do
   describe 'POST /books' do
     it 'create a new book' do
       expect {
-        post '/api/v1/books', params: { book: {title: 'The Martian', author: 'Andy Weir'} }
-    }.to change { Book.count }.from(0).to(1)
-      
+        post '/api/v1/books', params: { 
+          book: {title: 'The Martian'},
+          author: {first_name: 'Andy', last_name: 'Weir', age: '50'}
+        }
+      }.to change { Book.count }.from(0).to(1)
 
-      expect(response).to have_http_status(:created)      
+      byebug
+
+      expect(response).to have_http_status(:created)  
+      expect(Author.count).to eq(1)
+      expect(JSON.parse(response.body, symbolize_names: true)).to eq(
+        {
+          "id": 1,
+          "title": 'The Martian',
+          "author_name": 'Andy Weir',
+          "author_age": 50
+        }
+      )
     end
   end
 
   describe 'DELETE /books/:id' do
-    let!(:book) { FactoryBot.create(:book, title: 'The Time Machine', author: 'H.G. Wells') }
+    
+    let!(:author) { create(:author)}
+    let!(:book) { create(:book, author: author) }
 
     it 'deletes a book' do
       expect {
